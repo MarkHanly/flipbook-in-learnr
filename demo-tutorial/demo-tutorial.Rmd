@@ -1,0 +1,67 @@
+---
+title: "Incorporating flipbooks in learnR tutorials"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(ggdag)
+library(flipbookr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Coding DAGS in R
+
+### Overview 
+The DAGs in this tutorial are created using the `ggdag` function. You can read a detailed vignette on the package [here](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html).
+
+
+### Demonstration
+Navigate through the slides below to see an example.
+
+```{r, out.width='100%', out.height='100%'}
+knitr::include_url("images/flipbook.html")
+```
+
+Note that:
+
+* The funtion `dagify()` is used to define the relationships between nodes. For example `y ~ x` indicates that an arrow will point from **x** to **y**.  
+* Passing the output of `dagify()` to `node_parents()` creates a dataframe distinguishing between child and parent nodes. 
+* `geom_dag_point()` and `geom_dag_edges()` plot the results. 
+* Applying `theme_dag()` provides a nice clean plot. 
+ 
+ 
+### Try it yourself
+Try experimenting with the code below to create your own DAG.
+
+```{r ggdag1, exercise = TRUE, exercise.lines = 30}
+coords <- list(
+        x = c(x = 0, y = 1, a = 1, b = 0),
+        y = c(x = 0, y = 1, a = 0, b = 1)
+    )
+dagify(y ~ x + a + b,
+       x ~ a + b,
+       exposure = "x",
+       outcome = "y",
+       coords = coords) %>%  
+  node_parents("x") %>% 
+  ggplot() + 
+  aes(x = x) +
+  aes(y = y) + 
+  geom_dag_point() + 
+  geom_dag_text(col = "white") + 
+  geom_dag_edges() +
+  aes(xend = xend) +
+  aes(yend = yend) + 
+  aes(color = parent) + 
+  theme_dag() + 
+  scale_color_hue(
+    breaks  = c("parent", "child")
+    ) 
+```
+ 
+ 
+ 
+
+
