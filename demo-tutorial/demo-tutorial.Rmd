@@ -11,9 +11,12 @@ library(flipbookr)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Coding DAGS in R
+## Proof of concept: embedding `flipbookr` slides in `learnr` tutorials 
+This is a demonstration tutorial illustrating how [`flipbookr` slides](https://evamaerey.github.io/flipbooks/about) can be incorporated into [`learnr` interactive tutorials](https://rstudio.github.io/learnr/). The step-by-step illustration of code using a flipbook combined with the hands-on interactive coding chunk provided by `learnr` offers a powerful learning experience. The code to create this demonstration can be found on GitHub [here](https://github.com/MarkHanly/flipbook-in-learnr). This approach was inspired by a talk on `Xaringan` given by [Emi Tanaka](https://emitanaka.org/).
 
-### Overview 
+The material on DAGs comes from a more fully developed tutorial from the [UNSW Masters of Health Data Science](https://cbdrh.med.unsw.edu.au/postgraduate-coursework), delivered by the [Centre for Big Data Resource in Health](https://cbdrh.med.unsw.edu.au/).  
+
+### Coding DAGS in R: Overview 
 The DAGs in this tutorial are created using the `ggdag` function. You can read a detailed vignette on the package [here](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html).
 
 
@@ -26,8 +29,9 @@ knitr::include_url("images/flipbook.html")
 
 Note that:
 
-* The funtion `dagify()` is used to define the relationships between nodes. For example `y ~ x` indicates that an arrow will point from **x** to **y**.  
-* Passing the output of `dagify()` to `node_parents()` creates a dataframe distinguishing between child and parent nodes. 
+* You can fix the node positions using `coords = `. Otherwise they are randomly chosen. 
+* The funtion `dagify()` is used to define the relationships between nodes. E.g. `y ~ x` indicates that an arrow will point from **x** to **y**.  
+* Passing the output of `dagify()` to `node_parents(x)` creates a dataframe distinguishing between child and parent nodes of **x**. 
 * `geom_dag_point()` and `geom_dag_edges()` plot the results. 
 * Applying `theme_dag()` provides a nice clean plot. 
  
@@ -35,32 +39,34 @@ Note that:
 ### Try it yourself
 Try experimenting with the code below to create your own DAG.
 
-```{r ggdag1, exercise = TRUE, exercise.lines = 30}
+```{r ggdag1, exercise = TRUE, exercise.lines = 25}
+# specifying fixed coordinates means that the nodes of the DAG will 
+# always be in the same in the same place. If we don't include this, 
+# the nodes will be randomly arranged each time the DAG is drawn
 coords <- list(
         x = c(x = 0, y = 1, a = 1, b = 0),
         y = c(x = 0, y = 1, a = 0, b = 1)
     )
+
+
 dagify(y ~ x + a + b,
        x ~ a + b,
        exposure = "x",
        outcome = "y",
        coords = coords) %>%  
   node_parents("x") %>% 
-  ggplot() + 
-  aes(x = x) +
-  aes(y = y) + 
+  ggplot(aes(x=x, y=y, xend=xend, yend=yend, color=parent)) + 
   geom_dag_point() + 
-  geom_dag_text(col = "white") + 
   geom_dag_edges() +
-  aes(xend = xend) +
-  aes(yend = yend) + 
-  aes(color = parent) + 
+  geom_dag_text(col = "white", size = 6) + 
+  geom_dag_edges_link(arrow = grid::arrow()) + 
   theme_dag() + 
   scale_color_hue(
     breaks  = c("parent", "child")
     ) 
 ```
  
+You might notice that this code differs slightly from the code in the flipbook slides above. The flipbook code uses _slow ggplot_ as described by the `flipbookr` package developer Evangeline Reynolds in her [blog](https://evangelinereynolds.netlify.app/post/slow-ggplot/). Slow ggplot is an approach to writing ggplot code that focuses on incremental changes, for example, instead of specifying `aes(x=xy, y=y, xend=xend, yend=yend, color=parent)` in a single line, slow ggplot separates out each aesthetic element to a separate line, to emphasise how that element affects the graph. The editable code above dispenses with the slow ggplot syntax, and is more typical of how you will write R code in the wild.    
  
  
 

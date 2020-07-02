@@ -5,8 +5,8 @@ account: cbdrh
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2525105
-bundleId: 3338593
+bundleId: 3341616
 url: https://cbdrh.shinyapps.io/demo-tutorial/
-when: 1593604932.94103
+when: 1593652437.38454
 asMultiple: FALSE
 asStatic: FALSE

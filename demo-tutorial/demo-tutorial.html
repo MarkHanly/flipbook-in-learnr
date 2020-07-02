@@ -116,10 +116,12 @@ $(document).ready(function () {
 
 <div class="topics">
 
-<div id="section-coding-dags-in-r" class="section level2">
-<h2>Coding DAGS in R</h2>
-<div id="section-overview" class="section level3">
-<h3>Overview</h3>
+<div id="section-proof-of-concept-embedding-flipbookr-slides-in-learnr-tutorials" class="section level2">
+<h2>Proof of concept: embedding <code>flipbookr</code> slides in <code>learnr</code> tutorials</h2>
+<p>This is a demonstration tutorial illustrating how <a href="https://evamaerey.github.io/flipbooks/about"><code>flipbookr</code> slides</a> can be incorporated into <a href="https://rstudio.github.io/learnr/"><code>learnr</code> interactive tutorials</a>. The step-by-step illustration of code using a flipbook combined with the hands-on interactive coding chunk provided by <code>learnr</code> offers a powerful learning experience. The code to create this demonstration can be found on GitHub <a href="https://github.com/MarkHanly/flipbook-in-learnr">here</a>. This approach was inspired by a talk on <code>Xaringan</code> given by <a href="https://emitanaka.org/">Emi Tanaka</a>.</p>
+<p>The material on DAGs comes from a more fully developed tutorial from the <a href="https://cbdrh.med.unsw.edu.au/postgraduate-coursework">UNSW Masters of Health Data Science</a>, delivered by the <a href="https://cbdrh.med.unsw.edu.au/">Centre for Big Data Resource in Health</a>.</p>
+<div id="section-coding-dags-in-r-overview" class="section level3">
+<h3>Coding DAGS in R: Overview</h3>
 <p>The DAGs in this tutorial are created using the <code>ggdag</code> function. You can read a detailed vignette on the package <a href="https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html">here</a>.</p>
 </div>
 <div id="section-demonstration" class="section level3">
@@ -129,9 +131,10 @@ $(document).ready(function () {
 </iframe>
 <p>Note that:</p>
 <ul>
-<li>The funtion <code>dagify()</code> is used to define the relationships between nodes. For example <code>y ~ x</code> indicates that an arrow will point from <strong>x</strong> to <strong>y</strong>.<br />
+<li>You can fix the node positions using <code>coords =</code>. Otherwise they are randomly chosen.</li>
+<li>The funtion <code>dagify()</code> is used to define the relationships between nodes. E.g. <code>y ~ x</code> indicates that an arrow will point from <strong>x</strong> to <strong>y</strong>.<br />
 </li>
-<li>Passing the output of <code>dagify()</code> to <code>node_parents()</code> creates a dataframe distinguishing between child and parent nodes.</li>
+<li>Passing the output of <code>dagify()</code> to <code>node_parents(x)</code> creates a dataframe distinguishing between child and parent nodes of <strong>x</strong>.</li>
 <li><code>geom_dag_point()</code> and <code>geom_dag_edges()</code> plot the results.</li>
 <li>Applying <code>theme_dag()</code> provides a nice clean plot.</li>
 </ul>
@@ -139,32 +142,34 @@ $(document).ready(function () {
 <div id="section-try-it-yourself" class="section level3">
 <h3>Try it yourself</h3>
 <p>Try experimenting with the code below to create your own DAG.</p>
-<div class="tutorial-exercise" data-label="ggdag1" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="30">
-<pre class="text"><code>coords &lt;- list(
+<div class="tutorial-exercise" data-label="ggdag1" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="25">
+<pre class="text"><code># specifying fixed coordinates means that the nodes of the DAG will 
+# always be in the same in the same place. If we don&#39;t include this, 
+# the nodes will be randomly arranged each time the DAG is drawn
+coords &lt;- list(
         x = c(x = 0, y = 1, a = 1, b = 0),
         y = c(x = 0, y = 1, a = 0, b = 1)
     )
+
+
 dagify(y ~ x + a + b,
        x ~ a + b,
        exposure = &quot;x&quot;,
        outcome = &quot;y&quot;,
        coords = coords) %&gt;%  
   node_parents(&quot;x&quot;) %&gt;% 
-  ggplot() + 
-  aes(x = x) +
-  aes(y = y) + 
+  ggplot(aes(x=x, y=y, xend=xend, yend=yend, color=parent)) + 
   geom_dag_point() + 
-  geom_dag_text(col = &quot;white&quot;) + 
   geom_dag_edges() +
-  aes(xend = xend) +
-  aes(yend = yend) + 
-  aes(color = parent) + 
+  geom_dag_text(col = &quot;white&quot;, size = 6) + 
+  geom_dag_edges_link(arrow = grid::arrow()) + 
   theme_dag() + 
   scale_color_hue(
     breaks  = c(&quot;parent&quot;, &quot;child&quot;)
     ) </code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
 </div>
+<p>You might notice that this code differs slightly from the code in the flipbook slides above. The flipbook code uses <em>slow ggplot</em> as described by the <code>flipbookr</code> package developer Evangeline Reynolds in her <a href="https://evangelinereynolds.netlify.app/post/slow-ggplot/">blog</a>. Slow ggplot is an approach to writing ggplot code that focuses on incremental changes, for example, instead of specifying <code>aes(x=xy, y=y, xend=xend, yend=yend, color=parent)</code> in a single line, slow ggplot separates out each aesthetic element to a separate line, to emphasise how that element affects the graph. The editable code above dispenses with the slow ggplot syntax, and is more typical of how you will write R code in the wild.</p>
 
 <script type="application/shiny-prerendered" data-context="server-start">
 library(learnr)
